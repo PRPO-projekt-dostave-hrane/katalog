@@ -1,0 +1,369 @@
+openapi: 3.1.0
+info:
+  title: Katalog API
+  version: 1.0.0
+  description: Restavracije in njihovi meniji.
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: restavracije
+    description: Restavracije v katalogu
+  - name: jedi
+    description: Jedi v menijih restavracij
+
+paths: 
+  /v1/restavracije:
+    get:
+      tags:
+        - restavracije
+      operationId: seznamRestavracij
+      summary: Pridobi seznam restavracij
+      parameters:
+        - name: kuhinja
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0 
+      responses:
+        '200':
+          description: Seznam restavracij
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeznamRestavracij"
+        '400':
+          $ref: "#/components/responses/NapacnaZahteva"
+  /v1/restavracije/{restavracijaId}:
+    parameters:
+      - name: restavracijaId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - restavracije
+      operationId: podrobnostiRestavracije
+      summary: Pridobi restavracijo po ID
+      responses: 
+        '200':
+          description: Podrobnosti restavracije
+          content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Restavracija"
+        '404':
+          $ref: "#/components/responses/NiNajden"
+  /v1/restavracije/{restavracijaId}/jedi:
+    parameters:
+      - name: restavracijaId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - jedi
+      operationId: seznamJedi
+      summary: Pridobi seznam jedi
+      responses:
+        '200':
+          description: Seznam jedi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeznamJedi"
+        '404':
+          $ref: "#/components/responses/NiNajden"
+    post:
+      tags:
+        - jedi
+      operationId: dodajJed
+      summary: Dodaj jed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NovaJed"
+      responses:
+        '201':
+          description: Jed dodana
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Jed"
+        '400':
+          $ref: "#/components/responses/NapacnaZahteva"
+        '404':
+          $ref: "#/components/responses/NiNajden"
+        '422':
+          $ref: "#/components/responses/NeveljavenVnos"
+  /v1/restavracije/{restavracijaId}/jedi/{jedId}:
+    parameters:
+      - name: restavracijaId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: jedId
+        in: path
+        required: true
+        schema:
+          type: string
+    get: 
+      tags:
+        - jedi
+      operationId: podrobnostiJedi
+      summary: Pridobi jed po ID
+      responses:
+        '200':
+          description: Podrobnosti jedi
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Jed"
+        '404':
+          $ref: "#/components/responses/NiNajden"
+    patch:
+      tags:
+        - jedi
+      operationId: spremeniJed
+      summary: Popravi jed
+      description: Pošlji samo polja, ki jih spreminjaš; ostala ostanejo nespremenjena.
+      parameters:
+        - name: If-Match
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpremembaJedi"
+      responses:
+        '200':
+          description: Nove podrobnosti jedi
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Jed"
+        '400':
+          $ref: "#/components/responses/NapacnaZahteva"
+        '404':
+          $ref: "#/components/responses/NiNajden"
+        '412':
+          $ref: "#/components/responses/PogojNiIzpolnjen"
+        '422':
+          $ref: "#/components/responses/NeveljavenVnos"
+        '428':
+          $ref: "#/components/responses/ZahtevanPogoj"
+    delete:
+      tags:
+        - jedi
+      operationId: izbrisiJed
+      summary: Izbriši jed
+      responses:
+        '204':
+          description: Jed zbrisana
+        '404':
+          $ref: "#/components/responses/NiNajden"
+components:
+  responses:
+    NapacnaZahteva:
+      description: Zahteve ni mogoče razčleniti
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NiNajden:
+      description: Vir ne obstaja
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    PogojNiIzpolnjen:
+      description: If-Match se ne ujema s trenutno verzijo
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NeveljavenVnos:
+      description: Podatki kršijo pravila
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ValidacijskiProblem"
+    ZahtevanPogoj:
+      description: Manjka glava If-Match
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+  schemas: 
+    Restavracija: 
+      type: object
+      required:
+        - id
+        - ime
+        - kuhinja
+        - naslov
+      properties: 
+        id:
+          type: string
+          example: r-1
+        ime:
+          type: string
+          example: Pizzeria Napoli
+        kuhinja:
+          type: string
+          example: italijanska
+        naslov:
+          type: string
+          example: Italijanska ulica 23
+        povprecnaOcena:
+          type: number
+          example: 4.6
+    SeznamRestavracij:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Restavracija"
+    Cena:
+      type: object
+      required: 
+        - znesek
+        - valuta
+      properties: 
+        znesek:
+          type: string
+          pattern: '^\d+\.\d{2}$'
+          example: "9.50"
+        valuta:
+          type: string
+          enum:
+            - EUR
+          example: EUR
+    Jed:
+      type: object
+      required: 
+        - id
+        - ime
+        - cena
+        - razpolozljiva
+      properties: 
+        id:
+          type: string
+          example: j-12
+        ime:
+          type: string
+          example: Margherita
+        opis:
+          type: string
+          example: Paradižnikova omaka, mocarela, bazilika.
+        cena:
+          $ref: "#/components/schemas/Cena"
+        razpolozljiva:
+          type: boolean
+          example: true
+    SeznamJedi:
+      type: object
+      required:
+        - items
+      properties: 
+        items:
+          type: array
+          items: 
+            $ref: "#/components/schemas/Jed"
+    NovaJed:
+      type: object
+      required:
+        - ime
+        - cena
+      properties:
+        ime:
+          type: string
+        opis:
+          type: string
+        cena:
+          $ref: "#/components/schemas/Cena"
+        razpolozljiva:
+          type: boolean
+          default: true
+    SpremembaJedi:
+      type: object
+      properties:
+        ime:
+          type: string
+        opis:
+          type: string
+        cena:
+          $ref: "#/components/schemas/Cena"
+        razpolozljiva:
+          type: boolean
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+          example: Vir ne obstaja
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+          example: Restavracija r-99 ne obstaja.
+        instance:
+          type: string
+          example: /v1/restavracije/r-99
+    ValidacijskiProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  pointer:
+                    type: string
+                    example: "#/cena/znesek"
+                  detail:
+                    type: string
+                    example: neveljavna oblika zneska
+    
