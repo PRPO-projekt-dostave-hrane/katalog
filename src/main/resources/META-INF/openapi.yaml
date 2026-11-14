@@ -152,6 +152,7 @@ paths:
         - jedi
       operationId: spremeniJed
       summary: Popravi jed
+      description: Pošlji samo polja, ki jih spreminjaš; ostala ostanejo nespremenjena.
       parameters:
         - name: If-Match
           in: header
@@ -161,7 +162,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/merge-patch+json:
+          application/json:
             schema:
               $ref: "#/components/schemas/SpremembaJedi"
       responses:
