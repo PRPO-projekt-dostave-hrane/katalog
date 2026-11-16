@@ -92,7 +92,9 @@ public class JediVir implements JediApi {
     @Override 
     public Response podrobnostiJedi(String restavracijaId, String jedId) {
         Jed jed = najdiJed(restavracijaId, jedId);
-        return Response.ok(jed).header("ETag", etag(jed)).build();
+        synchronized (jed){ 
+            return Response.ok(jed).header("ETag", etag(jed)).build();
+        }
     }
 
     @Override 
@@ -107,26 +109,31 @@ public class JediVir implements JediApi {
     }
 
     @Override 
-    public Response spremeniJed(String ifMatch, String restavracijaId, String jedId, SpremembaJedi spremembaJedi) {
+    public Response spremeniJed(String restavracijaId, String jedId, SpremembaJedi spremembaJedi, String ifMatch) {
         Jed jed = najdiJed(restavracijaId, jedId);
-
-        if (!etag(jed).equals(ifMatch)) {
-            throw new WebApplicationException(Response.Status.PRECONDITION_FAILED);
+        if (ifMatch == null || ifMatch.isBlank()) {
+            throw new WebApplicationException(Response.Status.PRECONDITION_REQUIRED);
         }
 
-        if (spremembaJedi.getIme() != null) {
-            jed.setIme(spremembaJedi.getIme());
-        }
-        if (spremembaJedi.getOpis() != null) {
-            jed.setOpis(spremembaJedi.getOpis());
-        }
-        if (spremembaJedi.getCena() != null) {
-            jed.setCena(spremembaJedi.getCena());
-        }
-        if (spremembaJedi.getRazpolozljiva() != null) {
-            jed.setRazpolozljiva(spremembaJedi.getRazpolozljiva());
-        }
+        synchronized (jed) {
+            if (!etag(jed).equals(ifMatch)) {
+                throw new WebApplicationException(Response.Status.PRECONDITION_FAILED);
+            }
 
-        return Response.ok(jed).header("ETag", etag(jed)).build();
+            if (spremembaJedi.getIme() != null) {
+                jed.setIme(spremembaJedi.getIme());
+            }
+            if (spremembaJedi.getOpis() != null) {
+                jed.setOpis(spremembaJedi.getOpis());
+            }
+            if (spremembaJedi.getCena() != null) {
+                jed.setCena(spremembaJedi.getCena());
+            }
+            if (spremembaJedi.getRazpolozljiva() != null) {
+                jed.setRazpolozljiva(spremembaJedi.getRazpolozljiva());
+            }
+
+            return Response.ok(jed).header("ETag", etag(jed)).build();
+        }
     }
 }
