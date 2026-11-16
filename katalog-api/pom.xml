@@ -62,6 +62,7 @@
                                 <useSwaggerAnnotations>false</useSwaggerAnnotations>
                                 <openApiNullable>false</openApiNullable>
                                 <returnResponse>true</returnResponse>
+                                <generateJsonCreator>false</generateJsonCreator>
                             </configOptions>
                         </configuration>
                     </execution>
