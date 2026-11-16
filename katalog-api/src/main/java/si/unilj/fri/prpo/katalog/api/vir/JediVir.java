@@ -112,12 +112,12 @@ public class JediVir implements JediApi {
     public Response spremeniJed(String restavracijaId, String jedId, SpremembaJedi spremembaJedi, String ifMatch) {
         Jed jed = najdiJed(restavracijaId, jedId);
         if (ifMatch == null || ifMatch.isBlank()) {
-            throw new WebApplicationException(Response.Status.PRECONDITION_REQUIRED);
+            throw new WebApplicationException("Manjka glava If-Match.", Response.Status.PRECONDITION_REQUIRED);
         }
 
         synchronized (jed) {
             if (!etag(jed).equals(ifMatch)) {
-                throw new WebApplicationException(Response.Status.PRECONDITION_FAILED);
+                throw new WebApplicationException("ETag se ne ujema s trenutno verzijo jedi.", Response.Status.PRECONDITION_FAILED);
             }
 
             if (spremembaJedi.getIme() != null) {

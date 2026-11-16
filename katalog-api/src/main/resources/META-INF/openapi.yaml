@@ -156,6 +156,7 @@ paths:
       parameters:
         - name: If-Match
           in: header
+          description: Brez glave strežnik vrne 428.
           required: false
           schema:
             type: string
@@ -338,6 +339,7 @@ components:
       properties:
         type:
           type: string
+          example: https://dostava-hrane.example/problemi/ni-najden
         title:
           type: string
           example: Vir ne obstaja
@@ -350,6 +352,15 @@ components:
         instance:
           type: string
           example: /v1/restavracije/r-99
+    NapakaVnosa:
+      type: object
+      properties:
+        pointer:
+          type: string
+          example: "#/cena/znesek"
+        detail:
+          type: string
+          example: neveljavna oblika zneska
     ValidacijskiProblem:
       allOf:
         - $ref: "#/components/schemas/Problem"
@@ -358,12 +369,5 @@ components:
             errors:
               type: array
               items:
-                type: object
-                properties:
-                  pointer:
-                    type: string
-                    example: "#/cena/znesek"
-                  detail:
-                    type: string
-                    example: neveljavna oblika zneska
+                $ref: "#/components/schemas/NapakaVnosa"
     
