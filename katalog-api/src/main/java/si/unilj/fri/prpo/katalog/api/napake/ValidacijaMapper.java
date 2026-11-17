@@ -42,6 +42,7 @@ public class ValidacijaMapper implements ExceptionMapper<ValidationException> {
         .type(HttpNapakaMapper.OSNOVA + (vTelesu ? "vnos" : "zahteva"))
         .title(vTelesu ? "Neveljavni podatki" : "Napačna zahteva")
         .status(status)
+        .detail(vTelesu ? "Telo zahteve vsebuje neveljavne podatke." : "Parametri zahteve niso veljavni.")
         .instance(uriInfo.getRequestUri().getPath())
         .errors(napake);
 
